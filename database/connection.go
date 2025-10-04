@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"native-free-pollings/config"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -15,14 +16,17 @@ func GetDatabaseConnection(conf config.Database) *sql.DB {
 	)
 
 	db, err := sql.Open("postgres", dsn)
-
 	if err != nil {
 		log.Fatal("Failed open conection:", err)
 	}
 
 	defer db.Close()
-
 	fmt.Println("Database connected")
+
+	db.SetMaxIdleConns(10)
+	db.SetMaxOpenConns(100)
+	db.SetConnMaxIdleTime(3 * time.Minute)
+	db.SetConnMaxLifetime(60 * time.Minute)
 
 	return db
 }
