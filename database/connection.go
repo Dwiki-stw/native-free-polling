@@ -20,7 +20,6 @@ func GetDatabaseConnection(conf config.Database) *sql.DB {
 		log.Fatal("Failed open conection:", err)
 	}
 
-	defer db.Close()
 	fmt.Println("Database connected")
 
 	db.SetMaxIdleConns(10)
