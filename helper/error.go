@@ -1,6 +1,10 @@
 package helper
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 type AppError struct {
 	Code    string
@@ -17,4 +21,22 @@ func (e *AppError) Error() string {
 
 func NewAppError(code, message string, err error) *AppError {
 	return &AppError{Code: code, Message: message, Err: err}
+}
+
+func (e *AppError) WriteError(w http.ResponseWriter) {
+	status := http.StatusInternalServerError
+	switch e.Code {
+	case "INVALID_INPUT":
+		status = http.StatusBadRequest
+	case "EMAIL_EXIST":
+		status = http.StatusConflict
+	case "AUTH_FAILED":
+		status = http.StatusUnauthorized
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"code":    e.Code,
+		"message": e.Message,
+	})
 }
