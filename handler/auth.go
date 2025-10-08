@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"native-free-pollings/domain"
 	"native-free-pollings/dto"
+	"native-free-pollings/helper"
 	"net/http"
 )
 
@@ -17,19 +18,29 @@ func NewAuthHandler(service domain.AuthService) *AuthHandler {
 
 func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
 		return
 	}
 
 	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request payload", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "INVALID_REQUEST",
+			"message": "invalid request payload",
+		})
 		return
 	}
 
 	resp, err := a.Service.Login(r.Context(), &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		err.(*helper.AppError).WriteError(w)
 		return
 	}
 
@@ -40,19 +51,29 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
 		return
 	}
 
 	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request payload", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "INVALID_REQUEST",
+			"message": "invalid request payload",
+		})
 		return
 	}
 
 	resp, err := a.Service.Register(r.Context(), &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		err.(*helper.AppError).WriteError(w)
 		return
 	}
 

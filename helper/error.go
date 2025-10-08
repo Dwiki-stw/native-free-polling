@@ -32,6 +32,10 @@ func (e *AppError) WriteError(w http.ResponseWriter) {
 		status = http.StatusConflict
 	case "AUTH_FAILED":
 		status = http.StatusUnauthorized
+	case "LOGIN_FAILED":
+		status = http.StatusBadRequest
+	case "TOKEN_FAILED":
+		status = http.StatusInternalServerError
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
