@@ -1,0 +1,1 @@
+drop table poll_options
