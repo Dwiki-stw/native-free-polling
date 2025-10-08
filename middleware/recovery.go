@@ -1,12 +1,20 @@
 package middleware
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 func Recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				http.Error(w, "internal server error", http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				_ = json.NewEncoder(w).Encode(map[string]string{
+					"code":    "SERVER_ERROR",
+					"message": "internal server error",
+				})
 			}
 		}()
 		next.ServeHTTP(w, r)

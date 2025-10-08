@@ -38,6 +38,17 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if errs, err := helper.BindAndValidate(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"code":    "VALIDATION_ERROR",
+			"message": "payload validation failed",
+			"details": errs,
+		})
+		return
+	}
+
 	resp, err := a.Service.Login(r.Context(), &req)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
@@ -67,6 +78,17 @@ func (a *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"code":    "INVALID_REQUEST",
 			"message": "invalid request payload",
+		})
+		return
+	}
+
+	if errs, err := helper.BindAndValidate(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"code":    "VALIDATION_ERROR",
+			"message": "payload validation failed",
+			"details": errs,
 		})
 		return
 	}
