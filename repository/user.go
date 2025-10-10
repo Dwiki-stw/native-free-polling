@@ -41,12 +41,17 @@ func (u *userRepository) Update(ctx context.Context, user *models.User) error {
 	updated_at = $3
 	WHERE id = $4
 	`
-	_, err := u.DB.ExecContext(ctx, query,
+	result, err := u.DB.ExecContext(ctx, query,
 		user.Name,
 		user.Email,
 		time.Now(),
 		user.ID,
 	)
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
 
 	return err
 }
@@ -59,11 +64,16 @@ func (u *userRepository) UpdatePassword(ctx context.Context, id int64, passwordH
 		WHERE id = $3
 	`
 
-	_, err := u.DB.ExecContext(ctx, query,
+	result, err := u.DB.ExecContext(ctx, query,
 		passwordHashed,
 		time.Now(),
 		id,
 	)
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
 
 	return err
 }
