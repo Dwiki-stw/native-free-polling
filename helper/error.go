@@ -36,6 +36,12 @@ func (e *AppError) WriteError(w http.ResponseWriter) {
 		status = http.StatusBadRequest
 	case "TOKEN_FAILED":
 		status = http.StatusInternalServerError
+	case "NOT_FOUND":
+		status = http.StatusNotFound
+	case "BAD_REQUEST":
+		status = http.StatusBadRequest
+	case "INTERNAL_ERROR":
+		status = http.StatusInternalServerError
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
