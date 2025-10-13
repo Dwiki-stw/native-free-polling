@@ -39,7 +39,7 @@ func (m *UserRepositoryMock) Update(ctx context.Context, user *models.User) erro
 	return args.Error(0)
 }
 
-func (m *UserRepositoryMock) UpdatePassword(ctx context.Context, id int64, passwordHashed string) error {
-	args := m.Called(ctx, id, passwordHashed)
+func (m *UserRepositoryMock) UpdatePassword(ctx context.Context, id int64, password string) error {
+	args := m.Called(ctx, id, password)
 	return args.Error(0)
 }

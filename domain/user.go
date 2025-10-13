@@ -15,5 +15,5 @@ type UserRepository interface {
 type UserService interface {
 	GetProfile(ctx context.Context, id int64) (*dto.ProfileResponse, error)
 	UpdateProfile(ctx context.Context, user *models.User) (*dto.ProfileResponse, error)
-	ChangePassword(ctx context.Context, id int64, passwordHashed string) error
+	ChangePassword(ctx context.Context, id int64, password string) error
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"native-free-pollings/helper"
 	"native-free-pollings/mocks"
@@ -62,7 +63,7 @@ func TestUserService_GetProfile(t *testing.T) {
 			repo := new(mocks.UserRepositoryMock)
 			tt.setupMocks(repo)
 
-			svc := NewUserService(repo)
+			svc := NewUserService(repo, mocks.MockHasher{ShouldFail: false})
 			resp, err := svc.GetProfile(context.Background(), tt.id)
 
 			if tt.wantErr == "" {
@@ -183,7 +184,7 @@ func TestUserService_UpdateProfile(t *testing.T) {
 		repo := new(mocks.UserRepositoryMock)
 		tt.setupMocks(repo)
 
-		svc := NewUserService(repo)
+		svc := NewUserService(repo, mocks.MockHasher{ShouldFail: false})
 		resp, err := svc.UpdateProfile(context.Background(), tt.user)
 
 		if tt.wantErr == "" {
@@ -204,6 +205,7 @@ func TestUserService_ChangePassword(t *testing.T) {
 		id         int64
 		password   string
 		setupMocks func(repo *mocks.UserRepositoryMock)
+		hasher     mocks.MockHasher
 		wantErr    string
 	}{
 		{
@@ -211,33 +213,45 @@ func TestUserService_ChangePassword(t *testing.T) {
 			id:         0,
 			password:   "",
 			setupMocks: func(repo *mocks.UserRepositoryMock) {},
+			hasher:     mocks.MockHasher{ShouldFail: false},
 			wantErr:    "BAD_REQUEST",
 		},
 		{
+			name:       "hash password failed",
+			id:         1,
+			password:   strings.Repeat("a", 100),
+			setupMocks: func(repo *mocks.UserRepositoryMock) {},
+			hasher:     mocks.MockHasher{ShouldFail: true},
+			wantErr:    "HASH_FAILED",
+		},
+		{
 			name:     "user not found",
-			id:       1,
+			id:       2,
 			password: "hashed123",
 			setupMocks: func(repo *mocks.UserRepositoryMock) {
-				repo.On("UpdatePassword", mock.Anything, int64(1), "hashed123").Return(sql.ErrNoRows)
+				repo.On("UpdatePassword", mock.Anything, int64(2), "hashed123").Return(sql.ErrNoRows)
 			},
+			hasher:  mocks.MockHasher{ShouldFail: false},
 			wantErr: "NOT_FOUND",
 		},
 		{
 			name:     "db error",
-			id:       2,
+			id:       3,
 			password: "hashed123",
 			setupMocks: func(repo *mocks.UserRepositoryMock) {
-				repo.On("UpdatePassword", mock.Anything, int64(2), "hashed123").Return(errors.New("db error"))
+				repo.On("UpdatePassword", mock.Anything, int64(3), "hashed123").Return(errors.New("db error"))
 			},
+			hasher:  mocks.MockHasher{ShouldFail: false},
 			wantErr: "INTERNAL_ERROR",
 		},
 		{
 			name:     "success",
-			id:       3,
+			id:       4,
 			password: "hashed123",
 			setupMocks: func(repo *mocks.UserRepositoryMock) {
-				repo.On("UpdatePassword", mock.Anything, int64(3), "hashed123").Return(nil)
+				repo.On("UpdatePassword", mock.Anything, int64(4), "hashed123").Return(nil)
 			},
+			hasher:  mocks.MockHasher{ShouldFail: false},
 			wantErr: "",
 		},
 	}
@@ -245,7 +259,7 @@ func TestUserService_ChangePassword(t *testing.T) {
 		repo := new(mocks.UserRepositoryMock)
 		tt.setupMocks(repo)
 
-		svc := NewUserService(repo)
+		svc := NewUserService(repo, tt.hasher)
 		err := svc.ChangePassword(context.Background(), tt.id, tt.password)
 
 		if tt.wantErr == "" {

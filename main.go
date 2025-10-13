@@ -5,6 +5,7 @@ import (
 	"native-free-pollings/config"
 	"native-free-pollings/database"
 	"native-free-pollings/handler"
+	"native-free-pollings/helper"
 	"native-free-pollings/middleware"
 	"native-free-pollings/repository"
 	"native-free-pollings/service"
@@ -16,7 +17,7 @@ func main() {
 	db := database.GetDatabaseConnection(conf.Database)
 
 	authRepo := repository.NewAuth(db)
-	authServ := service.NewAuthService(authRepo, conf.JwtKey)
+	authServ := service.NewAuthService(authRepo, conf.JwtKey, helper.BcryptHasher{})
 	authHandler := handler.NewAuthHandler(authServ)
 
 	mux := http.NewServeMux()

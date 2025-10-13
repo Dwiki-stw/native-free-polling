@@ -11,11 +11,12 @@ import (
 )
 
 type userService struct {
-	repo domain.UserRepository
+	repo   domain.UserRepository
+	hasher helper.PasswordHasher
 }
 
-func NewUserService(repo domain.UserRepository) domain.UserService {
-	return &userService{repo: repo}
+func NewUserService(repo domain.UserRepository, hasher helper.PasswordHasher) domain.UserService {
+	return &userService{repo: repo, hasher: hasher}
 }
 
 func (u *userService) GetProfile(ctx context.Context, id int64) (*dto.ProfileResponse, error) {
@@ -62,12 +63,17 @@ func (u *userService) UpdateProfile(ctx context.Context, user *models.User) (*dt
 
 }
 
-func (u *userService) ChangePassword(ctx context.Context, id int64, passwordHashed string) error {
-	if id <= 0 || passwordHashed == "" {
+func (u *userService) ChangePassword(ctx context.Context, id int64, password string) error {
+	if id <= 0 || password == "" {
 		return helper.NewAppError("BAD_REQUEST", "invalid input", nil)
 	}
 
-	err := u.repo.UpdatePassword(ctx, id, passwordHashed)
+	hashed, err := u.hasher.Hash(password)
+	if err != nil {
+		return helper.NewAppError("HASH_FAILED", "failed hash password", err)
+	}
+
+	err = u.repo.UpdatePassword(ctx, id, hashed)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return helper.NewAppError("NOT_FOUND", "user not found", err)

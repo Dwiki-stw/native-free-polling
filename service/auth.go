@@ -7,17 +7,16 @@ import (
 	"native-free-pollings/helper"
 	"native-free-pollings/models"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type authService struct {
 	repo   domain.AuthRepository
 	jwtKey []byte
+	hasher helper.PasswordHasher
 }
 
-func NewAuthService(repo domain.AuthRepository, jwtKey []byte) domain.AuthService {
-	return &authService{repo: repo, jwtKey: jwtKey}
+func NewAuthService(repo domain.AuthRepository, jwtKey []byte, hasher helper.PasswordHasher) domain.AuthService {
+	return &authService{repo: repo, jwtKey: jwtKey, hasher: hasher}
 }
 
 func (a *authService) Login(ctx context.Context, req *dto.LoginRequest) (*dto.LoginResponse, error) {
@@ -26,7 +25,7 @@ func (a *authService) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Lo
 		return nil, helper.NewAppError("LOGIN_FAILED", "invalid email or password", err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+	if err := a.hasher.Compare(user.PasswordHash, req.Password); err != nil {
 		return nil, helper.NewAppError("LOGIN_FAILED", "invalid email or password", err)
 	}
 
@@ -55,7 +54,7 @@ func (a *authService) Register(ctx context.Context, req *dto.RegisterRequest) (*
 		return nil, helper.NewAppError("EMAIL_EXIST", "email already registered", nil)
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Pass), bcrypt.DefaultCost)
+	hashed, err := a.hasher.Hash(req.Pass)
 	if err != nil {
 		return nil, helper.NewAppError("HASH_FAILED", "failed hash password", err)
 	}
