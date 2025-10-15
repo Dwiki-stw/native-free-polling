@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"native-free-pollings/dto"
 	"native-free-pollings/models"
 
 	"github.com/stretchr/testify/mock"
@@ -40,6 +41,33 @@ func (m *UserRepositoryMock) Update(ctx context.Context, user *models.User) erro
 }
 
 func (m *UserRepositoryMock) UpdatePassword(ctx context.Context, id int64, password string) error {
+	args := m.Called(ctx, id, password)
+	return args.Error(0)
+}
+
+type UserServiceMock struct {
+	mock.Mock
+}
+
+func (m *UserServiceMock) GetProfile(ctx context.Context, id int64) (*dto.ProfileResponse, error) {
+	args := m.Called(ctx, id)
+	if resp, ok := args.Get(0).(*dto.ProfileResponse); ok {
+		return resp, args.Error(1)
+	}
+
+	return nil, args.Error(1)
+}
+
+func (m *UserServiceMock) UpdateProfile(ctx context.Context, user *models.User) (*dto.ProfileResponse, error) {
+	args := m.Called(ctx, user)
+	if resp, ok := args.Get(0).(*dto.ProfileResponse); ok {
+		return resp, args.Error(1)
+	}
+
+	return nil, args.Error(1)
+}
+
+func (m *UserServiceMock) ChangePassword(ctx context.Context, id int64, password string) error {
 	args := m.Called(ctx, id, password)
 	return args.Error(0)
 }
