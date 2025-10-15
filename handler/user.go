@@ -28,7 +28,7 @@ func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value("userID")
+	userIDRaw := r.Context().Value(helper.UserIDKey)
 	userID, ok := userIDRaw.(int64)
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
@@ -51,7 +51,7 @@ func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodPatch {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_ = json.NewEncoder(w).Encode(map[string]string{
@@ -61,7 +61,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value("userID")
+	userIDRaw := r.Context().Value(helper.UserIDKey)
 	userID, ok := userIDRaw.(int64)
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
@@ -114,7 +114,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodPatch {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_ = json.NewEncoder(w).Encode(map[string]string{
@@ -124,7 +124,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value("userID")
+	userIDRaw := r.Context().Value(helper.UserIDKey)
 	userID, ok := userIDRaw.(int64)
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
