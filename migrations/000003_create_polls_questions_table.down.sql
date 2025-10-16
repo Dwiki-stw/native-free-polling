@@ -1,1 +1,0 @@
-drop table poll_questions
