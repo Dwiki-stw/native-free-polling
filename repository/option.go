@@ -20,7 +20,7 @@ func (o *option) Create(ctx context.Context, db domain.DB, option *models.PollOp
 	query := `
 		INSERT INTO poll_options (poll_id, label, position)
 		VALUES ($1, $2, $3)
-		RETRUNING id
+		RETURNING id
 	`
 	err := db.QueryRowContext(ctx, query, option.PollID, option.Label, option.Position).Scan(&option.ID)
 	if err != nil {
@@ -32,7 +32,7 @@ func (o *option) Create(ctx context.Context, db domain.DB, option *models.PollOp
 
 func (o *option) Delete(ctx context.Context, db domain.DB, id int64) error {
 	query := `
-		DELETE poll_options WHERE id  = $1
+		DELETE FROM poll_options WHERE id  = $1
 	`
 	result, err := db.ExecContext(ctx, query, id)
 	if err != nil {
@@ -49,7 +49,7 @@ func (o *option) Delete(ctx context.Context, db domain.DB, id int64) error {
 
 func (o *option) Update(ctx context.Context, db domain.DB, option *models.PollOption) error {
 	query := `
-		UPDATE poll_option
+		UPDATE poll_options
 		SET label = $1,
 			position = $2
 		WHERE id = $3

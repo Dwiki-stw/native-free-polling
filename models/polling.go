@@ -4,7 +4,7 @@ import "time"
 
 type Polling struct {
 	ID           int64     `db:"id"`
-	UserID       string    `db:"user_id"`
+	UserID       int64     `db:"user_id"`
 	Title        string    `db:"title"`
 	Description  string    `db:"description"`
 	Status       string    `db:"status"`

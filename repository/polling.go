@@ -42,7 +42,10 @@ func (p *polling) Delete(ctx context.Context, db domain.DB, id int64) error {
 		return fmt.Errorf("delete poll failed: %w", err)
 	}
 
-	rows, _ := result.RowsAffected()
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
 	if rows == 0 {
 		return sql.ErrNoRows
 	}
@@ -56,31 +59,38 @@ func (p *polling) Update(ctx context.Context, db domain.DB, poll *models.Polling
 		SET title = $1,
 			description = $2,
 			status = $3,
-			stars_at = $4,
+			starts_at = $4,
 			ends_at = $5,
 			updated_at = $6
 		WHERE id = $7
 	`
-	result, err := db.ExecContext(ctx, query, poll.Title, poll.Description, poll.Status, poll.StartsAt, poll.EndsAt, time.Now())
+	result, err := db.ExecContext(ctx, query, poll.Title, poll.Description, poll.Status, poll.StartsAt, poll.EndsAt, time.Now(), poll.ID)
+	if err != nil {
+		return fmt.Errorf("update polling failed: %w", err)
+	}
 
-	rows, _ := result.RowsAffected()
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
 	if rows == 0 {
 		return sql.ErrNoRows
 	}
 
-	return err
+	return nil
 }
 
 func (p *polling) GetByID(ctx context.Context, db domain.DB, id int64) (*models.Polling, error) {
 	var poll models.Polling
 
 	query := `
-		SELECT p.id, p.user_id, p.title, p.description
-			   p.status, p.starts_at, p.ends_at, p.created_at,
-			   p.updated.at, u.name as creator_name, u.email as creator_email 
+		SELECT p.id, p.user_id, p.title, p.description,
+       		   p.status, p.starts_at, p.ends_at, p.created_at,
+       		   p.updated_at, u.name AS creator_name, u.email AS creator_email
 		FROM polls p
 		JOIN users u ON u.id = p.user_id
-		WHERE id = $1
+		WHERE p.id = $1
+
 	`
 	err := db.QueryRowContext(ctx, query, id).
 		Scan(&poll.ID, &poll.UserID, &poll.Title, &poll.Description, &poll.Status, &poll.StartsAt, &poll.EndsAt, &poll.CreatedAt, &poll.UpdatedAt, &poll.CreatorName, &poll.CreatorEmail)
@@ -88,40 +98,16 @@ func (p *polling) GetByID(ctx context.Context, db domain.DB, id int64) (*models.
 		return nil, fmt.Errorf("get polling failed: %w", err)
 	}
 
-	query = `
-		SELECT o.id, o.poll_id, o.label, o.position
-		FROM poll_options o
-		WHERE o.poll_id = $1
-		ORDER BY o.position
-	`
-	rows, err := db.QueryContext(ctx, query, id)
-	if err != nil {
-		return nil, fmt.Errorf("query get options error: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var opt models.PollOption
-		if err := rows.Scan(&opt.ID, &opt.PollID, &opt.Label, &opt.Position); err != nil {
-			return nil, fmt.Errorf("scan options failed: %w", err)
-		}
-		poll.Options = append(poll.Options, opt)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows option iteration failed: %w", err)
-	}
-
 	return &poll, nil
 }
 
 func (p *polling) GetResultsByID(ctx context.Context, db domain.DB, id int64) ([]models.VoteResult, error) {
 	query := `
-		SELECT o.id as option_id, o.label as option label, COUNT(v.id) as votes
+		SELECT o.id as option_id, o."label" as option_label, COUNT(v.id) as votes
 		FROM poll_options o
 		LEFT JOIN votes v ON v.option_id = o.id
 		WHERE o.poll_id = $1
-		GROUP BY o.id, o.label, o.position
+		GROUP BY o.id, o."label", o.position
 		ORDER BY o.position
 	`
 	rows, err := db.QueryContext(ctx, query, id)
@@ -133,7 +119,7 @@ func (p *polling) GetResultsByID(ctx context.Context, db domain.DB, id int64) ([
 	var results []models.VoteResult
 	for rows.Next() {
 		var rest models.VoteResult
-		if err := rows.Scan(); err != nil {
+		if err := rows.Scan(&rest.OptionID, &rest.OptionLabel, &rest.Votes); err != nil {
 			return nil, fmt.Errorf("scan failed: %w", err)
 		}
 		results = append(results, rest)
