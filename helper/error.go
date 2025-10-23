@@ -42,6 +42,10 @@ func (e *AppError) WriteError(w http.ResponseWriter) {
 		status = http.StatusBadRequest
 	case "INTERNAL_ERROR":
 		status = http.StatusInternalServerError
+	case "FORBIDDEN_ERROR":
+		status = http.StatusForbidden
+	case "ALREADY_VOTED":
+		status = http.StatusConflict
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

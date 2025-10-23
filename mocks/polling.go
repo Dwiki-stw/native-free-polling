@@ -12,7 +12,7 @@ type PollRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *PollRepositoryMock) Create(ctx context.Context, db domain.AuthRepository, poll *models.Polling) error {
+func (m *PollRepositoryMock) Create(ctx context.Context, db domain.DB, poll *models.Polling) error {
 	args := m.Called(ctx, db, poll)
 	return args.Error(0)
 }
