@@ -9,7 +9,7 @@ type ValidatorError struct {
 	Message string `json:"message"`
 }
 
-func BindAndValidate(dst interface{}) ([]ValidatorError, error) {
+func BindAndValidate(dst any) ([]ValidatorError, error) {
 	if err := validate.Struct(dst); err != nil {
 		var errs []ValidatorError
 		for _, e := range err.(validator.ValidationErrors) {
