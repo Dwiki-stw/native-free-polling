@@ -26,7 +26,7 @@ func (p *Polling) CreatePolling(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"code":    "INVALID_TOKEN",
-			"message": "invalid user id",
+			"message": "invalid user information",
 		})
 		return
 	}
@@ -78,7 +78,7 @@ func (p *Polling) UpdatePolling(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"code":    "INVALID_TOKEN",
-			"message": "invalid user id",
+			"message": "invalid user information",
 		})
 		return
 	}
@@ -130,7 +130,7 @@ func (p *Polling) DeletePolling(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"code":    "INVALID_TOKEN",
-			"message": "invalid user id",
+			"message": "invalid user information",
 		})
 		return
 	}
@@ -211,6 +211,15 @@ func (p *Polling) GetDetailPolling(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Polling) VoteOptionPolling(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
 		w.Header().Set("Content-Type", "application/json")
@@ -271,10 +280,20 @@ func (p *Polling) VoteOptionPolling(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Polling) GetPollingResult(w http.ResponseWriter, r *http.Request) {
-	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) < 3 {
+	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"code":    "INVALID_PATH",
 			"message": "invalid path id polling",
