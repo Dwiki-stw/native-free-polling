@@ -35,7 +35,7 @@ func (p *polling) Create(ctx context.Context, db domain.DB, poll *models.Polling
 
 func (p *polling) Delete(ctx context.Context, db domain.DB, id int64) error {
 	query := `
-		DELETE polls WHERE id = $1
+		DELETE FROM polls WHERE id = $1
 	`
 	result, err := p.DB.ExecContext(ctx, query, id)
 	if err != nil {
