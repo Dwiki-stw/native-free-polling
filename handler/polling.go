@@ -19,6 +19,15 @@ func NewPolling(svc domain.PollService) *Polling {
 }
 
 func (p *Polling) CreatePolling(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
 
 	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
@@ -61,6 +70,7 @@ func (p *Polling) CreatePolling(w http.ResponseWriter, r *http.Request) {
 	resp, err := p.Service.CreatePolling(r.Context(), &req, creator)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -113,6 +123,7 @@ func (p *Polling) UpdatePolling(w http.ResponseWriter, r *http.Request) {
 	resp, err := p.Service.UpdatePolling(r.Context(), &req, creator)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -164,6 +175,7 @@ func (p *Polling) DeletePolling(w http.ResponseWriter, r *http.Request) {
 	err = p.Service.DeletePolling(r.Context(), pollID, creator.ID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -174,6 +186,16 @@ func (p *Polling) DeletePolling(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Polling) GetDetailPolling(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
+
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
 		w.Header().Set("Content-Type", "application/json")
@@ -200,6 +222,7 @@ func (p *Polling) GetDetailPolling(w http.ResponseWriter, r *http.Request) {
 	resp, err := p.Service.GetDetailPolling(r.Context(), pollID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -316,6 +339,7 @@ func (p *Polling) GetPollingResult(w http.ResponseWriter, r *http.Request) {
 	resp, err := p.Service.GetPollingResult(r.Context(), pollID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
