@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"native-free-pollings/domain"
 	"native-free-pollings/dto"
@@ -85,6 +86,9 @@ func (p *polling) CreatePolling(ctx context.Context, rq *dto.CreatePollingReques
 func (p *polling) UpdatePolling(ctx context.Context, rq *dto.UpdatePollingRequest, creator dto.CreatorInfo) (*dto.PollingResponse, error) {
 	oldPoll, err := p.PollRepo.GetByID(ctx, p.DB, rq.ID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, helper.NewAppError("NOT_FOUND", "polling not found", err)
+		}
 		return nil, helper.NewAppError("INTERNAL_ERROR", "internal server error", err)
 	}
 
@@ -206,6 +210,9 @@ func (p *polling) VoteOptionPolling(ctx context.Context, userID, pollID, optionI
 
 	poll, err := p.PollRepo.GetByID(ctx, p.DB, pollID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return helper.NewAppError("NOT_FOUND", "polling not found", err)
+		}
 		return helper.NewAppError("DB_ERROR", "failed get polling", err)
 	}
 
@@ -239,6 +246,9 @@ func (p *polling) VoteOptionPolling(ctx context.Context, userID, pollID, optionI
 func (p *polling) DeletePolling(ctx context.Context, pollID, userID int64) error {
 	poll, err := p.PollRepo.GetByID(ctx, p.DB, pollID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return helper.NewAppError("NOT_FOUND", "polling not found", err)
+		}
 		return helper.NewAppError("INTERNAL_ERROR", "internal server error", err)
 	}
 
@@ -257,6 +267,9 @@ func (p *polling) DeletePolling(ctx context.Context, pollID, userID int64) error
 func (p *polling) GetDetailPolling(ctx context.Context, id int64) (*dto.PollingResponse, error) {
 	poll, err := p.PollRepo.GetByID(ctx, p.DB, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, helper.NewAppError("NOT_FOUND", "polling not found", err)
+		}
 		return nil, helper.NewAppError("DB_ERROR", "failed get detail polling", err)
 	}
 
@@ -291,6 +304,9 @@ func (p *polling) GetDetailPolling(ctx context.Context, id int64) (*dto.PollingR
 func (p *polling) GetPollingResult(ctx context.Context, pollID int64) (*dto.ResultPolling, error) {
 	vr, err := p.PollRepo.GetResultsByID(ctx, p.DB, pollID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, helper.NewAppError("NOT_FOUND", "polling not found", err)
+		}
 		return nil, helper.NewAppError("DB_ERROR", "failed get votes", err)
 	}
 
