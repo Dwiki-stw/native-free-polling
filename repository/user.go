@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"native-free-pollings/domain"
 	"native-free-pollings/models"
 	"time"
@@ -76,4 +77,70 @@ func (u *userRepository) UpdatePassword(ctx context.Context, id int64, passwordH
 	}
 
 	return err
+}
+
+func (u *userRepository) FindPollingsByID(ctx context.Context, id int64) ([]models.PollingSummary, error) {
+	query := `
+		SELECT p.id, p.title, p.status, count(v.id) 
+		FROM polls p 
+		LEFT JOIN poll_options po ON po.poll_id = p.id 
+		LEFT JOIN votes v ON v.option_id = po.id 
+		WHERE p.user_id = $1
+		GROUP BY p.id, p.title, p.status
+		ORDER BY p.created_at DESC
+	`
+
+	rows, err := u.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
+	}
+	defer rows.Close()
+
+	var results []models.PollingSummary
+	for rows.Next() {
+		var ps models.PollingSummary
+		if err := rows.Scan(&ps.ID, &ps.Title, &ps.Status, &ps.TotalVotes); err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
+		}
+		results = append(results, ps)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("interation failed: %w", err)
+	}
+
+	return results, nil
+}
+
+func (u *userRepository) FindPollingsVotedByID(ctx context.Context, id int64) ([]models.PollingSummary, error) {
+	query := `
+		SELECT p.id, p.title, p.status, po."label"
+		FROM polls p 
+		JOIN poll_options po ON po.poll_id = p.id 
+		JOIN votes v ON v.option_id = po.id 
+		JOIN user_votes uv ON uv.vote_id = v.id 
+		WHERE uv.user_id = $1
+		ORDER BY p.created_at DESC
+	`
+
+	rows, err := u.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
+	}
+	defer rows.Close()
+
+	var results []models.PollingSummary
+	for rows.Next() {
+		var ps models.PollingSummary
+		if err := rows.Scan(&ps.ID, &ps.Title, &ps.Status, &ps.UserVotedOption); err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
+		}
+		results = append(results, ps)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("interation failed: %w", err)
+	}
+
+	return results, nil
 }

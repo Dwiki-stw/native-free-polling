@@ -18,3 +18,11 @@ type Polling struct {
 	Options []PollOption
 	Results []VoteResult
 }
+
+type PollingSummary struct {
+	ID              int64  `db:"id"`
+	Title           string `db:"title"`
+	Status          string `db:"status"`
+	TotalVotes      int64  `db:"total_votes"`
+	UserVotedOption string `db:"voted_option"`
+}

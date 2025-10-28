@@ -116,3 +116,44 @@ func TestUpdatePasswordUser(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expedtedPassword, updatePassword)
 }
+
+func TestFindPollingsVotedByID(t *testing.T) {
+
+	conf := Get()
+	db := database.GetDatabaseConnection(conf.Database)
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// id := insertDummy(t, db, "test@gmail.com", "test user", "hash123")
+
+	repo := NewUserRepository(db)
+	polls, err := repo.FindPollingsVotedByID(ctx, 4)
+
+	//data from check database
+	assert.NoError(t, err)
+	assert.Equal(t, int64(48), polls[0].ID)
+	assert.Equal(t, "active", polls[0].Status)
+	assert.Equal(t, "Kotlin", polls[0].UserVotedOption)
+}
+
+func TestFindPollingsByID(t *testing.T) {
+
+	conf := Get()
+	db := database.GetDatabaseConnection(conf.Database)
+	defer db.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// id := insertDummy(t, db, "test@gmail.com", "test user", "hash123")
+
+	repo := NewUserRepository(db)
+	polls, err := repo.FindPollingsByID(ctx, 4)
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(48), polls[0].ID)
+	assert.Equal(t, "active", polls[0].Status)
+	assert.Equal(t, int64(2), polls[0].TotalVotes)
+}
