@@ -18,4 +18,6 @@ type UserService interface {
 	GetProfile(ctx context.Context, id int64) (*dto.ProfileResponse, error)
 	UpdateProfile(ctx context.Context, user *models.User) (*dto.ProfileResponse, error)
 	ChangePassword(ctx context.Context, id int64, password string) error
+	GetUserCreatedPollings(ctx context.Context, id int64) ([]dto.PollingSummaryForCreator, error)
+	GetUserVotedPollings(ctx context.Context, id int64) ([]dto.PollingSummaryForVoter, error)
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 
+	"native-free-pollings/dto"
 	"native-free-pollings/helper"
 	"native-free-pollings/mocks"
 	"native-free-pollings/models"
@@ -268,5 +269,109 @@ func TestUserService_ChangePassword(t *testing.T) {
 			assert.NotNil(t, err)
 			assert.Equal(t, tt.wantErr, err.(*helper.AppError).Code)
 		}
+	}
+}
+
+func TestUserService_GetUserCreatedPollings(t *testing.T) {
+	tests := []struct {
+		name       string
+		id         int64
+		setupMocks func(repo *mocks.UserRepositoryMock)
+		wantErr    string
+	}{
+		{
+			name:       "auth failed",
+			id:         0,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {},
+			wantErr:    "user ID invalid",
+		},
+		{
+			name: "failed get pollings summary",
+			id:   1,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {
+				repo.On("FindPollingsByID", mock.Anything, int64(1)).
+					Return(nil, assert.AnError)
+			},
+			wantErr: "failed to get pollings",
+		},
+		{
+			name: "success",
+			id:   1,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {
+				repo.On("FindPollingsByID", mock.Anything, int64(1)).
+					Return([]dto.PollingSummaryForCreator{}, nil)
+			},
+			wantErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.UserRepositoryMock)
+			tt.setupMocks(repo)
+
+			svc := NewUserService(repo, mocks.MockHasher{})
+			results, err := svc.GetUserCreatedPollings(context.Background(), tt.id)
+
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, []dto.PollingSummaryForCreator{}, results)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr, err.(*helper.AppError).Message)
+			}
+		})
+	}
+}
+
+func TestUserService_GetUserVotedPollings(t *testing.T) {
+	tests := []struct {
+		name       string
+		id         int64
+		setupMocks func(repo *mocks.UserRepositoryMock)
+		wantErr    string
+	}{
+		{
+			name:       "auth failed",
+			id:         0,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {},
+			wantErr:    "user ID invalid",
+		},
+		{
+			name: "failed get pollings summary",
+			id:   1,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {
+				repo.On("FindPollingsVotedByID", mock.Anything, int64(1)).
+					Return(nil, assert.AnError)
+			},
+			wantErr: "failed to get pollings",
+		},
+		{
+			name: "success",
+			id:   1,
+			setupMocks: func(repo *mocks.UserRepositoryMock) {
+				repo.On("FindPollingsVotedByID", mock.Anything, int64(1)).
+					Return([]dto.PollingSummaryForVoter{}, nil)
+			},
+			wantErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(mocks.UserRepositoryMock)
+			tt.setupMocks(repo)
+
+			svc := NewUserService(repo, mocks.MockHasher{})
+			results, err := svc.GetUserVotedPollings(context.Background(), tt.id)
+
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+				assert.Equal(t, []dto.PollingSummaryForVoter{}, results)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr, err.(*helper.AppError).Message)
+			}
+		})
 	}
 }

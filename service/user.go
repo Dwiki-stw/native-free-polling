@@ -83,3 +83,51 @@ func (u *userService) ChangePassword(ctx context.Context, id int64, password str
 
 	return nil
 }
+
+func (u *userService) GetUserCreatedPollings(ctx context.Context, id int64) ([]dto.PollingSummaryForCreator, error) {
+	if id <= 0 {
+		return nil, helper.NewAppError("AUTH_FAILED", "user ID invalid", nil)
+	}
+
+	results := []dto.PollingSummaryForCreator{}
+	polls, err := u.repo.FindPollingsByID(ctx, id)
+	if err != nil {
+		return nil, helper.NewAppError("DB_ERROR", "failed to get pollings", err)
+	}
+
+	for _, poll := range polls {
+		ps := dto.PollingSummaryForCreator{
+			ID:         poll.ID,
+			Title:      poll.Title,
+			Status:     poll.Status,
+			TotalVotes: poll.TotalVotes,
+		}
+		results = append(results, ps)
+	}
+
+	return results, nil
+}
+
+func (u *userService) GetUserVotedPollings(ctx context.Context, id int64) ([]dto.PollingSummaryForVoter, error) {
+	if id <= 0 {
+		return nil, helper.NewAppError("AUTH_FAILED", "user ID invalid", nil)
+	}
+
+	results := []dto.PollingSummaryForVoter{}
+	polls, err := u.repo.FindPollingsVotedByID(ctx, id)
+	if err != nil {
+		return nil, helper.NewAppError("DB_ERROR", "failed to get pollings", err)
+	}
+
+	for _, poll := range polls {
+		ps := dto.PollingSummaryForVoter{
+			ID:        poll.ID,
+			Title:     poll.Title,
+			Status:    poll.Status,
+			UserVoted: poll.UserVotedOption,
+		}
+		results = append(results, ps)
+	}
+
+	return results, nil
+}

@@ -14,3 +14,17 @@ type UpdateProfileRequest struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
+
+type PollingSummaryForVoter struct {
+	ID        int64  `json:"id"`
+	Title     string `json:"title"`
+	Status    string `json:"status"`
+	UserVoted string `json:"user_voted"`
+}
+
+type PollingSummaryForCreator struct {
+	ID         int64  `json:"id"`
+	Title      string `json:"title"`
+	Status     string `json:"status"`
+	TotalVotes int64  `json:"total_votes"`
+}
