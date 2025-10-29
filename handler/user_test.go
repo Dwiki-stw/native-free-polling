@@ -76,7 +76,7 @@ func TestHandlerGetProfile(t *testing.T) {
 
 			req := httptest.NewRequest(tt.method, "/profile", nil)
 			if tt.id != nil {
-				req = req.WithContext(context.WithValue(req.Context(), "userID", tt.id))
+				req = req.WithContext(context.WithValue(req.Context(), helper.UserIDKey, tt.id))
 			}
 			rr := httptest.NewRecorder()
 
@@ -171,7 +171,7 @@ func TestHandlerUpdateProfile(t *testing.T) {
 
 			req := httptest.NewRequest(tt.method, "/profile", strings.NewReader(tt.body))
 			if tt.id != nil {
-				req = req.WithContext(context.WithValue(req.Context(), "userID", tt.id))
+				req = req.WithContext(context.WithValue(req.Context(), helper.UserIDKey, tt.id))
 			}
 			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
@@ -254,12 +254,156 @@ func TestHandlerChangePassword(t *testing.T) {
 
 			req := httptest.NewRequest(tt.method, "/users/me/password", strings.NewReader(tt.body))
 			if tt.id != nil {
-				req = req.WithContext(context.WithValue(req.Context(), "userID", tt.id))
+				req = req.WithContext(context.WithValue(req.Context(), helper.UserIDKey, tt.id))
 			}
 			req.Header.Set("Content-Type", "application/json")
 			rr := httptest.NewRecorder()
 
 			h.ChangePassword(rr, req)
+
+			assert.Equal(t, tt.wantCode, rr.Code)
+			assert.Contains(t, rr.Body.String(), tt.wantBody)
+			svc.AssertExpectations(t)
+		})
+	}
+}
+
+func TestHandlerGetUserCreatedPollings(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		id         any
+		setupMocks func(svc *mocks.UserServiceMock)
+		wantCode   int
+		wantBody   string
+	}{
+		{
+			name:       "invalid method",
+			method:     http.MethodPost,
+			id:         "",
+			setupMocks: func(svc *mocks.UserServiceMock) {},
+			wantCode:   http.StatusMethodNotAllowed,
+			wantBody:   "method not allowed",
+		},
+		{
+			name:       "invalid user id",
+			method:     http.MethodGet,
+			id:         "",
+			setupMocks: func(svc *mocks.UserServiceMock) {},
+			wantCode:   http.StatusUnauthorized,
+			wantBody:   "invalid user id",
+		},
+		{
+			name:   "GetUserCreatedPollings return error",
+			method: http.MethodGet,
+			id:     int64(1),
+			setupMocks: func(svc *mocks.UserServiceMock) {
+				svc.On("GetUserCreatedPollings", mock.Anything, int64(1)).
+					Return(nil, helper.NewAppError("NOT_FOUND", assert.AnError.Error(), assert.AnError))
+			},
+			wantCode: http.StatusNotFound,
+			wantBody: assert.AnError.Error(),
+		},
+		{
+			name:   "success",
+			method: http.MethodGet,
+			id:     int64(1),
+			setupMocks: func(svc *mocks.UserServiceMock) {
+				svc.On("GetUserCreatedPollings", mock.Anything, int64(1)).
+					Return([]dto.PollingSummaryForCreator{
+						{ID: 1, Title: "Test pollings"},
+					}, nil)
+			},
+			wantCode: http.StatusOK,
+			wantBody: "get pollings successfully",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := new(mocks.UserServiceMock)
+			tt.setupMocks(svc)
+
+			req := httptest.NewRequest(tt.method, "/users/pollings/creator", nil)
+			rr := httptest.NewRecorder()
+
+			ctx := context.WithValue(req.Context(), helper.UserIDKey, tt.id)
+			req = req.WithContext(ctx)
+
+			h := &UserHandler{Service: svc}
+			h.GetUserCreatedPollings(rr, req)
+
+			assert.Equal(t, tt.wantCode, rr.Code)
+			assert.Contains(t, rr.Body.String(), tt.wantBody)
+			svc.AssertExpectations(t)
+		})
+	}
+}
+
+func TestHandlerGetUserVotedPollings(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		id         any
+		setupMocks func(svc *mocks.UserServiceMock)
+		wantCode   int
+		wantBody   string
+	}{
+		{
+			name:       "invalid method",
+			method:     http.MethodPost,
+			id:         "",
+			setupMocks: func(svc *mocks.UserServiceMock) {},
+			wantCode:   http.StatusMethodNotAllowed,
+			wantBody:   "method not allowed",
+		},
+		{
+			name:       "invalid user id",
+			method:     http.MethodGet,
+			id:         "",
+			setupMocks: func(svc *mocks.UserServiceMock) {},
+			wantCode:   http.StatusUnauthorized,
+			wantBody:   "invalid user id",
+		},
+		{
+			name:   "GetUserCreatedPollings return error",
+			method: http.MethodGet,
+			id:     int64(1),
+			setupMocks: func(svc *mocks.UserServiceMock) {
+				svc.On("GetUserVotedPollings", mock.Anything, int64(1)).
+					Return(nil, helper.NewAppError("NOT_FOUND", assert.AnError.Error(), assert.AnError))
+			},
+			wantCode: http.StatusNotFound,
+			wantBody: assert.AnError.Error(),
+		},
+		{
+			name:   "success",
+			method: http.MethodGet,
+			id:     int64(1),
+			setupMocks: func(svc *mocks.UserServiceMock) {
+				svc.On("GetUserVotedPollings", mock.Anything, int64(1)).
+					Return([]dto.PollingSummaryForVoter{
+						{ID: 1, Title: "Test pollings"},
+					}, nil)
+			},
+			wantCode: http.StatusOK,
+			wantBody: "get pollings successfully",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := new(mocks.UserServiceMock)
+			tt.setupMocks(svc)
+
+			req := httptest.NewRequest(tt.method, "/users/pollings/creator", nil)
+			rr := httptest.NewRecorder()
+
+			ctx := context.WithValue(req.Context(), helper.UserIDKey, tt.id)
+			req = req.WithContext(ctx)
+
+			h := &UserHandler{Service: svc}
+			h.GetUserVotedPollings(rr, req)
 
 			assert.Equal(t, tt.wantCode, rr.Code)
 			assert.Contains(t, rr.Body.String(), tt.wantBody)

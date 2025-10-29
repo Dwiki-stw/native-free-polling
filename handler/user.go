@@ -159,3 +159,77 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		"message": "password updated successfully",
 	})
 }
+
+func (u *UserHandler) GetUserCreatedPollings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
+
+	userIDRaw := r.Context().Value(helper.UserIDKey)
+	userID, ok := userIDRaw.(int64)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "INVALID_TOKEN",
+			"message": "invalid user id",
+		})
+		return
+	}
+
+	resp, err := u.Service.GetUserCreatedPollings(r.Context(), userID)
+	if err != nil {
+		err.(*helper.AppError).WriteError(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"message": "get pollings successfully",
+		"data":    resp,
+	})
+}
+
+func (u *UserHandler) GetUserVotedPollings(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "NOT_ALLOWED",
+			"message": "method not allowed",
+		})
+		return
+	}
+
+	userIDRaw := r.Context().Value(helper.UserIDKey)
+	userID, ok := userIDRaw.(int64)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"code":    "INVALID_TOKEN",
+			"message": "invalid user id",
+		})
+		return
+	}
+
+	resp, err := u.Service.GetUserVotedPollings(r.Context(), userID)
+	if err != nil {
+		err.(*helper.AppError).WriteError(w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"message": "get pollings successfully",
+		"data":    resp,
+	})
+}
