@@ -61,8 +61,7 @@ func Auth(screet []byte) func(http.Handler) http.Handler {
 				UserEmail: claims.Email,
 				UserName:  claims.Name,
 			}
-			ctx := context.WithValue(r.Context(), helper.UserIDKey, claims.UserID)
-			ctx = context.WithValue(r.Context(), helper.AuthKey, auth)
+			ctx := context.WithValue(r.Context(), helper.AuthKey, auth)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -116,8 +115,7 @@ func AuthOptional(screet []byte) func(http.Handler) http.Handler {
 				UserEmail: claims.Email,
 				UserName:  claims.Name,
 			}
-			ctx := context.WithValue(r.Context(), helper.UserIDKey, claims.UserID)
-			ctx = context.WithValue(r.Context(), helper.AuthKey, auth)
+			ctx := context.WithValue(r.Context(), helper.AuthKey, auth)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

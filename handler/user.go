@@ -28,8 +28,7 @@ func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value(helper.UserIDKey)
-	userID, ok := userIDRaw.(int64)
+	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -40,9 +39,10 @@ func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := u.Service.GetProfile(r.Context(), userID)
+	resp, err := u.Service.GetProfile(r.Context(), auth.UserID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -61,8 +61,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value(helper.UserIDKey)
-	userID, ok := userIDRaw.(int64)
+	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -95,7 +94,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := &models.User{
-		ID:    userID,
+		ID:    auth.UserID,
 		Name:  req.Name,
 		Email: req.Email,
 	}
@@ -103,6 +102,7 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	resp, err := u.Service.UpdateProfile(r.Context(), user)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -124,8 +124,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDRaw := r.Context().Value(helper.UserIDKey)
-	userID, ok := userIDRaw.(int64)
+	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -149,8 +148,9 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.Service.ChangePassword(r.Context(), userID, req.Password); err != nil {
+	if err := u.Service.ChangePassword(r.Context(), auth.UserID, req.Password); err != nil {
 		err.(*helper.AppError).WriteError(w)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -171,8 +171,7 @@ func (u *UserHandler) GetUserCreatedPollings(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userIDRaw := r.Context().Value(helper.UserIDKey)
-	userID, ok := userIDRaw.(int64)
+	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -183,7 +182,7 @@ func (u *UserHandler) GetUserCreatedPollings(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	resp, err := u.Service.GetUserCreatedPollings(r.Context(), userID)
+	resp, err := u.Service.GetUserCreatedPollings(r.Context(), auth.UserID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
 		return
@@ -208,8 +207,7 @@ func (u *UserHandler) GetUserVotedPollings(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userIDRaw := r.Context().Value(helper.UserIDKey)
-	userID, ok := userIDRaw.(int64)
+	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -220,7 +218,7 @@ func (u *UserHandler) GetUserVotedPollings(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	resp, err := u.Service.GetUserVotedPollings(r.Context(), userID)
+	resp, err := u.Service.GetUserVotedPollings(r.Context(), auth.UserID)
 	if err != nil {
 		err.(*helper.AppError).WriteError(w)
 		return
