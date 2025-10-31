@@ -37,7 +37,7 @@ func main() {
 
 	mux.HandleFunc("/register", http.HandlerFunc(authHandler.Register))
 	mux.HandleFunc("/login", http.HandlerFunc(authHandler.Login))
-	mux.Handle("/profile", middleware.Auth(conf.JwtKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/users/me", middleware.Auth(conf.JwtKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			userHandler.GetProfile(w, r)
@@ -52,14 +52,14 @@ func main() {
 			})
 		}
 	})))
-	mux.Handle("/change-password", middleware.Auth(conf.JwtKey)(http.HandlerFunc(userHandler.ChangePassword)))
-	mux.Handle("/profile/pollings/", middleware.Auth(conf.JwtKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/users/me/change-password", middleware.Auth(conf.JwtKey)(http.HandlerFunc(userHandler.ChangePassword)))
+	mux.Handle("/users/me/pollings/", middleware.Auth(conf.JwtKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(r.URL.Path, "/")
 		switch {
-		case len(parts) == 4 && parts[3] == "creator":
+		case len(parts) == 5 && parts[4] == "creator":
 			userHandler.GetUserCreatedPollings(w, r)
 			return
-		case len(parts) == 4 && parts[3] == "voter":
+		case len(parts) == 5 && parts[4] == "voter":
 			userHandler.GetUserVotedPollings(w, r)
 			return
 		}
