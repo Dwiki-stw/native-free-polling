@@ -14,6 +14,16 @@ import (
 	"strings"
 )
 
+// @title Free Polling API
+// @version 1.0
+// @description RESTful API for managing polls, votes, and user profiles
+
+// @host localhost:3000
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	conf := config.Get()
 	db := database.GetDatabaseConnection(conf.Database)

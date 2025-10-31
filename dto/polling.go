@@ -21,6 +21,15 @@ type UpdatePollingRequest struct {
 	Options     []Option  `json:"options" validate:"required"`
 }
 
+type VoteRequest struct {
+	OptionID   int64  `json:"option_id"`
+	DeviceHash string `json:"device_hash"`
+}
+
+type ChangePasswordRequest struct {
+	Password string `json:"password"`
+}
+
 type PollingResponse struct {
 	ID          int64     `json:"id"`
 	Title       string    `json:"title"`

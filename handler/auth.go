@@ -16,6 +16,15 @@ func NewAuthHandler(service domain.AuthService) *AuthHandler {
 	return &AuthHandler{Service: service}
 }
 
+// Login godoc
+// @Summary      Login user
+// @Description  Authenticates user and returns a JWT token for secure access.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.LoginRequest  true  "Login credentials"
+// @Success      201      {object}  dto.LoginResponse
+// @Router       /login [post]
 func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -60,6 +69,15 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
+// Register godoc
+// @Summary      Register user
+// @Description  Registers a new user with email, name, and password.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.RegisterRequest  true  "Register credentials"
+// @Success      201      {object}  dto.RegisterResponse
+// @Router       /register [post]
 func (a *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")

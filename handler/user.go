@@ -17,6 +17,15 @@ func NewUserHandler(service domain.UserService) *UserHandler {
 	return &UserHandler{Service: service}
 }
 
+// Get Profile godoc
+// @Summary      get profile info user login
+// @Description  Retrieves profile information of the currently authenticated user.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Success      200      {object}  dto.ProfileResponse
+// @Router       /users/me [get]
 func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
@@ -50,6 +59,16 @@ func (u *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
+// Update Profile godoc
+// @Summary      update profile info user login
+// @Description  Updates the profile information of the currently authenticated user.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Param        request  body     dto.UpdateProfileRequest  true "profile update payload"
+// @Success      200      {object}  dto.ProfileResponse
+// @Router       /users/me [patch]
 func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		w.Header().Set("Content-Type", "application/json")
@@ -113,6 +132,16 @@ func (u *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Update Profile godoc
+// @Summary      update profile info user login
+// @Description  Updates the profile information of the currently authenticated user.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Param        request  body     dto.ChangePasswordRequest  true "change password payload"
+// @Success      200      {object}  map[string]string "Success message"
+// @Router       /users/me/change-password [patch]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
 		w.Header().Set("Content-Type", "application/json")
@@ -135,9 +164,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		Password string `json:"password"`
-	}
+	var req dto.ChangePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -160,6 +187,15 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Get list polls created godoc
+// @Summary      get list polls creater by user login
+// @Description  Retrieves a list polls created by the logged-in user.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Success      200      {array}  dto.PollingSummaryForCreator
+// @Router       /users/me/pollings/created [get]
 func (u *UserHandler) GetUserCreatedPollings(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
@@ -196,6 +232,15 @@ func (u *UserHandler) GetUserCreatedPollings(w http.ResponseWriter, r *http.Requ
 	})
 }
 
+// Get list polls voted godoc
+// @Summary      get list polls voter by user login
+// @Description  Retrieves a list polls voted on by the logged-in user.
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Success      200      {object}  dto.PollingSummaryForVoter
+// @Router       /users/me/pollings/voted [get]
 func (u *UserHandler) GetUserVotedPollings(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")

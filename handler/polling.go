@@ -18,6 +18,16 @@ func NewPolling(svc domain.PollService) *Polling {
 	return &Polling{Service: svc}
 }
 
+// Create Polling godoc
+// @Summary      create polling
+// @Description  Creates a new poll with title, options, and start/end timestamps
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Param        request  body     dto.CreatePollingRequest  true "Poll create payload"
+// @Success      201      {object}  dto.PollingResponse
+// @Router       /pollings [post]
 func (p *Polling) CreatePolling(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -81,6 +91,17 @@ func (p *Polling) CreatePolling(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Update Polling godoc
+// @Summary      update polling
+// @Description  Updates an existing poll. Only the creator can modify title, options, or timestamps.
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Param id path int true "Poll ID"
+// @Param        request  body     dto.UpdatePollingRequest  true "Poll update payload"
+// @Success      200      {object}  dto.PollingResponse
+// @Router       /pollings/{id} [patch]
 func (p *Polling) UpdatePolling(w http.ResponseWriter, r *http.Request) {
 	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
@@ -134,6 +155,16 @@ func (p *Polling) UpdatePolling(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Delete Polling godoc
+// @Summary      delete polling
+// @Description  Deletes a poll. Only the creator is authorized to remove it.
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Security BearerAuth
+// @Param id path int true "Poll ID"
+// @Success      200      {object}  map[string]string "Success message"
+// @Router       /pollings/{id} [delete]
 func (p *Polling) DeletePolling(w http.ResponseWriter, r *http.Request) {
 	auth, ok := helper.GetAuthContext(r.Context())
 	if !ok {
@@ -185,6 +216,15 @@ func (p *Polling) DeletePolling(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Get Polling godoc
+// @Summary      get polling
+// @Description  Fetches detailed information about a specific poll.
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Param id path int true "Poll ID"
+// @Success      200      {object}  dto.PollingResponse
+// @Router       /pollings/{id} [get]
 func (p *Polling) GetDetailPolling(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
@@ -233,6 +273,16 @@ func (p *Polling) GetDetailPolling(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Vote Option Polling godoc
+// @Summary      vote option
+// @Description  Submits a vote for specific poll option.
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Param id path int true "Poll ID"
+// @Param        request  body     dto.VoteRequest  true "Poll vote payload"
+// @Success      200      {object}  map[string]string "Success message"
+// @Router       /pollings/{id}/votes [post]
 func (p *Polling) VoteOptionPolling(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Content-Type", "application/json")
@@ -266,10 +316,7 @@ func (p *Polling) VoteOptionPolling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		OptionID   int64  `json:"option_id"`
-		DeviceHash string `json:"device_hash"`
-	}
+	var req dto.VoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -302,6 +349,15 @@ func (p *Polling) VoteOptionPolling(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Get Polling Result godoc
+// @Summary      get polling result
+// @Description  Returns the voting results for a specific poll.
+// @Tags         Polling
+// @Accept       json
+// @Produce      json
+// @Param id path int true "Poll ID"
+// @Success      200      {object}  dto.ResultPolling
+// @Router       /pollings/{id}/results [get]
 func (p *Polling) GetPollingResult(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
